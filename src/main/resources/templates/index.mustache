@@ -6,13 +6,12 @@
     <meta content="width=device-width, initial-scale=1" name="viewport">
     <link rel="stylesheet" href="https://yarnpkg.com/en/package/normalize.css" type="text/css">
     <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+    <link rel="stylesheet" href="/stylesheet.css" type="text/css">
     <style></style>
 </head>
 <body>
 <h1 id="top">ReCollect</h1>
-<form method="GET">
-    <input type="hidden" name="search" value="true"/>
-
+<form method="GET" action="/search">
     <input type="text" placeholder="Search in recording transcriptions..." name="text" style="width: 100%"/>
     <label style="display: inline-block" for="projects">Project</label>
     <select name="projects">

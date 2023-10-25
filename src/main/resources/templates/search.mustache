@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <title>ReCollect</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="stylesheet" href="https://yarnpkg.com/en/package/normalize.css" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+    <link rel="stylesheet" href="/stylesheet.css" type="text/css">
+    <style></style>
+</head>
+<body class="search">
+<h1 id="top">ReCollect</h1>
+<form method="GET" action="/search">
+    <input type="text" placeholder="Search in recording transcriptions..." name="text" style="width: 100%"/>
+    <label style="display: inline-block" for="project">Project</label>
+    <select name="project">
+        {{#form.projects}}
+            <option value="{{id}}" {{selected}}>{{name}}</option>
+        {{/form.projects}}
+    </select>
+    <label style="display: inline-block" for="meeting">Meeting</label>
+    <select name="meeting">
+        {{#form.meetings}}
+            <option value="{{id}}" {{selected}}>{{name}}</option>
+        {{/form.meetings}}
+    </select>
+    <input type="submit" value="Search" style="float: right"/>
+</form>
+
+<hr/>
+
+<article class="search-results">
+    <small style="float: right;">
+        <a href="/">[Home]</a>
+    </small>
+
+    <h2 style="margin-bottom: 0">{{results.size}} Results</h2>
+    <p style="margin-bottom: 1.5rem;"><small>Generated in {{elapsedTime}}</small></p>
+
+    {{#results}}
+        <div class="recording">
+            <h5><span>{{index}}</span> - {{videoTitle}}</h5>
+            <div class="two-columns">
+                <img src="{{videoThumbnail}}" class="thumbnail" />
+                <div class="details">
+                    <div class="metadata">
+                        <small>
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12ZM3.00683 12C3.00683 16.9668 7.03321 20.9932 12 20.9932C16.9668 20.9932 20.9932 16.9668 20.9932 12C20.9932 7.03321 16.9668 3.00683 12 3.00683C7.03321 3.00683 3.00683 7.03321 3.00683 12Z" fill="#0F0F0F"></path> <path d="M12 5C11.4477 5 11 5.44771 11 6V12.4667C11 12.4667 11 12.7274 11.1267 12.9235C11.2115 13.0898 11.3437 13.2343 11.5174 13.3346L16.1372 16.0019C16.6155 16.278 17.2271 16.1141 17.5032 15.6358C17.7793 15.1575 17.6155 14.5459 17.1372 14.2698L13 11.8812V6C13 5.44772 12.5523 5 12 5Z" fill="#0F0F0F"></path> </g></svg>
+                            {{videoDuration}}
+                        </small>
+
+                        <small>
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 9H21M7 3V5M17 3V5M6 12H8M11 12H13M16 12H18M6 15H8M11 15H13M16 15H18M6 18H8M11 18H13M16 18H18M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z" stroke="#000000" stroke-width="2" stroke-linecap="round"></path> </g></svg>
+                            {{videoDate}}
+                        </small>
+
+                        <small>
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 8.2C3 7.07989 3 6.51984 3.21799 6.09202C3.40973 5.71569 3.71569 5.40973 4.09202 5.21799C4.51984 5 5.0799 5 6.2 5H9.67452C10.1637 5 10.4083 5 10.6385 5.05526C10.8425 5.10425 11.0376 5.18506 11.2166 5.29472C11.4184 5.4184 11.5914 5.59135 11.9373 5.93726L12.0627 6.06274C12.4086 6.40865 12.5816 6.5816 12.7834 6.70528C12.9624 6.81494 13.1575 6.89575 13.3615 6.94474C13.5917 7 13.8363 7 14.3255 7H17.8C18.9201 7 19.4802 7 19.908 7.21799C20.2843 7.40973 20.5903 7.71569 20.782 8.09202C21 8.51984 21 9.0799 21 10.2V15.8C21 16.9201 21 17.4802 20.782 17.908C20.5903 18.2843 20.2843 18.5903 19.908 18.782C19.4802 19 18.9201 19 17.8 19H6.2C5.07989 19 4.51984 19 4.09202 18.782C3.71569 18.5903 3.40973 18.2843 3.21799 17.908C3 17.4802 3 16.9201 3 15.8V8.2Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                            {{project}} > {{meeting}}
+                        </small>
+                    </div>
+
+                    <div class="matches">
+                        {{#matches}}
+                            {{#hasGap}}
+                                <div class="line gap">...</div>
+                            {{/hasGap}}
+                            <div class="line">
+                                <a href="/recording/{{videoId}}?line={{index}}">{{startTime}} - {{endTime}}</a> {{text}}
+                            </div>
+                        {{/matches}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {{/results}}
+</article>
+
+</body>
+</html>

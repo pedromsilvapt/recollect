@@ -14,6 +14,7 @@ import java.util.Map;
 @SpringBootApplication
 @Controller
 public class ReCollectApplication {
+    public static String recordingsLocation = "";
 
     public static void main(String[] args) {
         SpringApplication.run(ReCollectApplication.class, args);

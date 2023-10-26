@@ -2,14 +2,16 @@ package com.github.pedromsilvapt.recollect;
 
 import com.github.pedromsilvapt.recollect.Models.Recording;
 import com.github.pedromsilvapt.recollect.Models.RecordingLine;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;

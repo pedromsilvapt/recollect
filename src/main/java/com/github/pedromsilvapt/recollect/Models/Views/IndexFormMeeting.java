@@ -4,23 +4,23 @@ package com.github.pedromsilvapt.recollect.Models.Views;
  * Model Class for the Index & Search pages, containing the data to pre-fill the meetings select box when rendering the templates
  */
 public class IndexFormMeeting {
-    private int id;
+    private long id;
 
     private String name;
 
     private String selected;
 
-    public IndexFormMeeting(int id, String name, String selected) {
+    public IndexFormMeeting(long id, String name, String selected) {
         this.id = id;
         this.name = name;
         this.selected = selected;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

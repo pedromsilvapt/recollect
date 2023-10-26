@@ -12,7 +12,7 @@
 <body class="search">
 <h1 id="top">ReCollect</h1>
 <form method="GET" action="/search">
-    <input type="text" placeholder="Search in recording transcriptions..." name="text" style="width: 100%"/>
+    <input type="text" placeholder="Search in recording transcriptions..." name="text" value="{{form.text}}" style="width: 100%"/>
     <label style="display: inline-block" for="project">Project</label>
     <select name="project">
         {{#form.projects}}

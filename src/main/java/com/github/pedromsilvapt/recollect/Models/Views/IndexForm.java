@@ -6,12 +6,22 @@ import java.util.List;
  * Model Class for the Index & Search pages, containing the data to pre-fill on the forms when rendering the templates
  */
 public class IndexForm {
+    private String text;
     private List<IndexFormProject> projects;
     private List<IndexFormMeeting> meetings;
 
-    public IndexForm(List<IndexFormProject> projects, List<IndexFormMeeting> meetings) {
+    public IndexForm(String text, List<IndexFormProject> projects, List<IndexFormMeeting> meetings) {
+        this.text = text;
         this.projects = projects;
         this.meetings = meetings;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 
     public List<IndexFormProject> getProjects() {

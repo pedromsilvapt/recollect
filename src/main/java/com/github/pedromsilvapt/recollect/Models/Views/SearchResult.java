@@ -1,11 +1,11 @@
 package com.github.pedromsilvapt.recollect.Models.Views;
 
-import java.time.Duration;
 import java.util.List;
 
 public class SearchResult {
+    private int score;
     private int index;
-    private int videoId;
+    private long videoId;
     private String videoThumbnail;
     private String videoTitle;
     private String videoDuration;
@@ -14,7 +14,8 @@ public class SearchResult {
     private String meeting;
     private List<SearchResultMatch> matches;
 
-    public SearchResult(int index, int videoId, String videoThumbnail, String videoTitle, String videoDuration, String videoDate, String project, String meeting, List<SearchResultMatch> matches) {
+    public SearchResult(int score, int index, long videoId, String videoThumbnail, String videoTitle, String videoDuration, String videoDate, String project, String meeting, List<SearchResultMatch> matches) {
+        this.score = score;
         this.index = index;
         this.videoId = videoId;
         this.videoThumbnail = videoThumbnail;
@@ -26,6 +27,14 @@ public class SearchResult {
         this.matches = matches;
     }
 
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
     public int getIndex() {
         return index;
     }
@@ -34,11 +43,11 @@ public class SearchResult {
         this.index = index;
     }
 
-    public int getVideoId() {
+    public long getVideoId() {
         return videoId;
     }
 
-    public void setVideoId(int videoId) {
+    public void setVideoId(long videoId) {
         this.videoId = videoId;
     }
 

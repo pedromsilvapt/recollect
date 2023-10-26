@@ -91,28 +91,56 @@ public class Recording {
         this.processingState = processingState;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Recording recording = (Recording) o;
-        return recordingId == recording.recordingId && Objects.equals(title, recording.title) && Objects.equals(duration, recording.duration) && Objects.equals(filePath, recording.filePath) && Objects.equals(date, recording.date) && processingState == recording.processingState;
+    public Project getProject() {
+        return project;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(recordingId, title, duration, filePath, date, processingState);
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public Meeting getMeeting() {
+        return meeting;
+    }
+
+    public void setMeeting(Meeting meeting) {
+        this.meeting = meeting;
+    }
+
+    public List<RecordingLine> getLines() {
+        return lines;
+    }
+
+    public void setLines(List<RecordingLine> lines) {
+        this.lines = lines;
     }
 
     @Override
     public String toString() {
         return "Recording{" +
-                "projectId=" + recordingId +
+                "recordingId=" + recordingId +
                 ", title='" + title + '\'' +
                 ", duration=" + duration +
                 ", filePath='" + filePath + '\'' +
                 ", date=" + date +
                 ", processingState=" + processingState +
+                ", project=" + project +
+                ", meeting=" + meeting +
+                ", lines=" + lines +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Recording recording = (Recording) o;
+        return Objects.equals(recordingId, recording.recordingId) && Objects.equals(title, recording.title) && Objects.equals(duration, recording.duration) && Objects.equals(filePath, recording.filePath) && Objects.equals(date, recording.date) && processingState == recording.processingState && Objects.equals(project, recording.project) && Objects.equals(meeting, recording.meeting) && Objects.equals(lines, recording.lines);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(recordingId, title, duration, filePath, date, processingState, project, meeting, lines);
+    }
+
 }

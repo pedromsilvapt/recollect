@@ -1,6 +1,11 @@
 package com.github.pedromsilvapt.recollect;
 
+import com.github.pedromsilvapt.recollect.Models.Recording;
 import com.github.pedromsilvapt.recollect.Models.Views.*;
+import com.github.pedromsilvapt.recollect.Repositories.MeetingRepository;
+import com.github.pedromsilvapt.recollect.Repositories.ProjectRepository;
+import com.github.pedromsilvapt.recollect.Repositories.RecordingLineRepository;
+import com.github.pedromsilvapt.recollect.Repositories.RecordingRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Controller;
@@ -8,16 +13,38 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Map;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @SpringBootApplication
 @Controller
 public class ReCollectApplication {
     public static String recordingsLocation = "";
 
+    public static final int MAX_TERM_DIFF = 1;
+
+    public static final int MAX_TERM_DIST = 10;
+
     public static void main(String[] args) {
         SpringApplication.run(ReCollectApplication.class, args);
+    }
+
+    private final RecordingRepository recordingsRepository;
+    private final RecordingLineRepository recordingLinesRepository;
+    private final ProjectRepository projectsRepository;
+    private final MeetingRepository meetingsRepository;
+
+    ReCollectApplication(
+            RecordingRepository recordingsRepository,
+            RecordingLineRepository recordingLinesRepository,
+            ProjectRepository projectsRepository,
+            MeetingRepository meetingsRepository) {
+        this.recordingsRepository = recordingsRepository;
+        this.recordingLinesRepository = recordingLinesRepository;
+        this.projectsRepository = projectsRepository;
+        this.meetingsRepository = meetingsRepository;
     }
 
     /**
@@ -31,20 +58,9 @@ public class ReCollectApplication {
      */
     @GetMapping("/")
     public ModelAndView index(Map<String, Object> model) {
-        // TODO Dummy projects for now just to serve as mock data
-        var projects = Arrays.asList(
-                new IndexFormProject(1, "Boeing", "selected"),
-                new IndexFormProject(2, "Airbus", "")
-        );
+        var form = getSearchFormObject(new SearchQuery());
 
-        var meetings = Arrays.asList(
-                new IndexFormMeeting(1, "Backlog Refinement", "selected"),
-                new IndexFormMeeting(1, "Planning", ""),
-                new IndexFormMeeting(3, "Technical Meeting", ""),
-                new IndexFormMeeting(2, "Sprint Review", "")
-        );
-
-        model.put("form", new IndexForm(projects, meetings));
+        model.put("form", form);
 
         return new ModelAndView("index", model);
     }
@@ -59,37 +75,78 @@ public class ReCollectApplication {
      * @return The rendered HTML source code
      */
     @GetMapping("/search")
-    public ModelAndView search(Map<String, Object> model) {
-        // TODO Dummy projects for now just to serve as mock data
-        var projects = Arrays.asList(
-                new IndexFormProject(1, "Boeing", "selected"),
-                new IndexFormProject(2, "Airbus", "")
-        );
+    public ModelAndView search(Map<String, Object> model, SearchQuery query) {
+        var searchStart = Instant.now();
 
-        var meetings = Arrays.asList(
-                new IndexFormMeeting(1, "Backlog Refinement", "selected"),
-                new IndexFormMeeting(1, "Planning", ""),
-                new IndexFormMeeting(3, "Technical Meeting", ""),
-                new IndexFormMeeting(2, "Sprint Review", "")
-        );
+        var form = getSearchFormObject(query);
 
-        var matches = Arrays.asList(
-                new SearchResultMatch(1, Utilities.formatDuration(Duration.ofSeconds(20)), Utilities.formatDuration(Duration.ofSeconds(24)), "So, the topics for this meeting will be SPC and Quality Control.", false),
-                new SearchResultMatch(2, Utilities.formatDuration(Duration.ofSeconds(25)), Utilities.formatDuration(Duration.ofSeconds(30)), "We will start with Quality Control, and discuss SPC later.", false),
-                new SearchResultMatch(445, Utilities.formatDuration(Duration.ofSeconds(10025)), Utilities.formatDuration(Duration.ofSeconds(10031)), "So, moving on to SPC.", true)
-        );
+        var results = getSearchResultsList(query);
 
-        var results = Arrays.asList(
-                new SearchResult(1, 1, "https://images.hindustantimes.com/tech/img/2022/01/03/960x540/Microsoft_Teams_-_Breakout_Rooms_-_Manage_1628228764394_1641198077262.jpg", "Boeing :: Sprint 5 Review", Utilities.humanizeDuration(Duration.ofMinutes(37)), "06 Oct 2023", "Boeing", "Sprint Reviews", matches),
-                new SearchResult(2, 2, "https://images.hindustantimes.com/tech/img/2022/01/03/960x540/Microsoft_Teams_-_Breakout_Rooms_-_Manage_1628228764394_1641198077262.jpg", "Boeing :: Sprint 6 Review", Utilities.humanizeDuration(Duration.ofMinutes(28)), "20 Oct 2023", "Boeing", "Sprint Reviews", matches)
-        );
-
-        var elapsedTime = Duration.ofMillis(7);
-
-        model.put("form", new IndexForm(projects, meetings));
+        model.put("form", form);
         model.put("results", results);
-        model.put("elapsedTime", Utilities.humanizeDuration(elapsedTime));
+        model.put("elapsedTime", Utilities.humanizeDuration(Duration.between(searchStart, Instant.now())));
 
         return new ModelAndView("search", model);
+    }
+
+    private List<SearchResult> getSearchResultsList(SearchQuery query) {
+        var recordings = recordingsRepository.findForProjectMeetingWithLines(query.project, query.meeting);
+
+        var results = new ArrayList<SearchResult>();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd L yyyy")
+                .withZone(ZoneId.systemDefault());
+
+        var textSearch = new TextSearch(query.text);
+
+        for (Recording recording : recordings) {
+            var searchResult = textSearch.calculateSearchResultScore(recording.getLines(), MAX_TERM_DIFF, MAX_TERM_DIST);
+
+            if (searchResult.getScore() > 0) {
+                results.add(new SearchResult(
+                        searchResult.getScore(),
+                        // Hard-code index as zero for now. After the list is fully created, we sort it by score
+                        // and only then we calculate the proper indexes
+                        0,
+                        recording.getRecordingId(),
+                        // TODO Generate thumbnail with FFMPEG when loading the subtitles from the folders
+                        "https://images.hindustantimes.com/tech/img/2022/01/03/960x540/Microsoft_Teams_-_Breakout_Rooms_-_Manage_1628228764394_1641198077262.jpg",
+                        recording.getTitle(),
+                        Utilities.humanizeDuration(recording.getDuration()),
+                        formatter.format(recording.getDate()),
+                        recording.getProject().getName(),
+                        recording.getMeeting().getName(),
+                        searchResult.getMatches()
+                ));
+            }
+        }
+
+        // Sort by the Score field, in descending order
+        results.sort(Comparator.comparing(SearchResult::getScore));
+        Collections.reverse(results);
+
+        // Update the indexes
+        int index = 1;
+        for (SearchResult result : results) {
+            result.setIndex(index++);
+        }
+
+        return results;
+    }
+
+    private IndexForm getSearchFormObject(SearchQuery query) {
+        var projects = projectsRepository
+                .findAll()
+                .stream()
+                .map(proj -> new IndexFormProject(proj.getProjectId(), proj.getName(), proj.getProjectId() == query.project ? "selected" : ""))
+                .toList();
+
+        var meetings = meetingsRepository
+                .findAll()
+                .stream()
+                .map(meet -> new IndexFormMeeting(meet.getMeetingId(), meet.getName(), meet.getMeetingId() == query.meeting ? "selected" : ""))
+                .toList();
+
+        return new IndexForm(query.text, projects, meetings);
     }
 }

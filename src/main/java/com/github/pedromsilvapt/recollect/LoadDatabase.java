@@ -44,6 +44,9 @@ public class LoadDatabase {
 
             var recordingsPath = Paths.get(ReCollectApplication.recordingsLocation);
 
+            // Create instance of the class responsible for the various processing requirements for a new recording
+            var pipeline = new RecordingPipeline(recordingsRepo, linesRepo);
+
             // An example of the expected folder/file structure is as follows:
             //   - Recordings
             //      - Project A
@@ -106,7 +109,7 @@ public class LoadDatabase {
                             FFprobe ffprobe = new FFprobe("ffprobe");
                             FFmpegProbeResult probeResult = ffprobe.probe(recordingPath.toString());
 
-                            // Total duration in seconds, as a double. Round it up
+                            // Total duration in seconds, as a double
                             long duration = (long) Math.ceil(probeResult.getFormat().duration);
 
                             Instant recordingDate = Files.getLastModifiedTime(recordingPath, LinkOption.NOFOLLOW_LINKS).toInstant();
@@ -125,7 +128,7 @@ public class LoadDatabase {
 
                             var recording = recordingsRepo.save(new Recording(
                                     recordingPath.getFileName().toString(),
-                                    Duration.ofMillis(duration),
+                                    Duration.ofSeconds(duration),
                                     recordingPath.toString(),
                                     recordingDate,
                                     state,
@@ -146,26 +149,15 @@ public class LoadDatabase {
                                     log.error("Failed to parse and save lines for recording " + recordingPath.toString(), ex);
                                 }
                             }
+
+                            // Generate the thumbnail for the recording
+                            pipeline.generateThumbnail(recording);
+
+                            // TODO Queue transcription
                         }
                     }
                 }
             }
-//
-//            log.info("Preloading " + recordingsRepo.save(new Recording(
-//                    "2023 05 31 - Diamond Foundry Sprint Review",
-//                    Duration.ofSeconds(1549),
-//                    "B:\\Videos\\Work\\Critical Manufacturing\\Diamond Foundry\\Sprint Review\\2023 05 31 - Diamond Foundry Sprint Review.mp4",
-//                    LocalDateTime.of(2023, 05, 31, 15, 49),
-//                    RecordingProcessingState.QUEUED
-//            )));
-//
-//            log.info("Preloading " + recordingsRepo.save(new Recording(
-//                    "2023 04 26 - Diamond Foundry Backlog Refinement",
-//                    Duration.ofSeconds(3771),
-//                    "B:\\Videos\\Work\\Critical Manufacturing\\Diamond Foundry\\Backlog Refinement\\2023 04 26 - Diamond Foundry Backlog Refinement.mp4",
-//                    LocalDateTime.of(2023, 04, 26, 15, 53),
-//                    RecordingProcessingState.QUEUED
-//            )));
         };
     }
 }

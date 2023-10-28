@@ -6,12 +6,21 @@ import com.github.pedromsilvapt.recollect.Repositories.MeetingRepository;
 import com.github.pedromsilvapt.recollect.Repositories.ProjectRepository;
 import com.github.pedromsilvapt.recollect.Repositories.RecordingLineRepository;
 import com.github.pedromsilvapt.recollect.Repositories.RecordingRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -21,7 +30,7 @@ import java.util.*;
 @SpringBootApplication
 @Controller
 public class ReCollectApplication {
-    public static String recordingsLocation = "";
+    public static String recordingsLocation = "B:\\Videos\\Work\\Critical Manufacturing";
 
     public static final int MAX_TERM_DIFF = 1;
 
@@ -89,12 +98,29 @@ public class ReCollectApplication {
         return new ModelAndView("search", model);
     }
 
+
+    @RequestMapping(value = "/thumbnail/{recordingId}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
+    public void thumbnail(HttpServletResponse response, @PathVariable long recordingId) throws IOException {
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+
+        var targetPath = Paths.get(System.getProperty("user.dir"))
+                .resolve("storage")
+                .resolve("thumbnails")
+                .resolve(recordingId + ".jpg");
+
+        if (Files.exists(targetPath)) {
+            StreamUtils.copy(Files.newInputStream(targetPath), response.getOutputStream());
+        } else {
+            response.setStatus(404);
+        }
+    }
+
     private List<SearchResult> getSearchResultsList(SearchQuery query) {
         var recordings = recordingsRepository.findForProjectMeetingWithLines(query.project, query.meeting);
 
         var results = new ArrayList<SearchResult>();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd L yyyy")
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
                 .withZone(ZoneId.systemDefault());
 
         var textSearch = new TextSearch(query.text);
@@ -109,8 +135,7 @@ public class ReCollectApplication {
                         // and only then we calculate the proper indexes
                         0,
                         recording.getRecordingId(),
-                        // TODO Generate thumbnail with FFMPEG when loading the subtitles from the folders
-                        "https://images.hindustantimes.com/tech/img/2022/01/03/960x540/Microsoft_Teams_-_Breakout_Rooms_-_Manage_1628228764394_1641198077262.jpg",
+                        "/thumbnail/" + recording.getRecordingId(),
                         recording.getTitle(),
                         Utilities.humanizeDuration(recording.getDuration()),
                         formatter.format(recording.getDate()),
